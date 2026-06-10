@@ -32,8 +32,8 @@ export function DocumentsStatCard({ value }: { value: number }) {
     <StatCard
       label="Total Documents"
       value={value}
-      icon={<FileText className="h-4 w-4 text-primary" />}
-      accent="bg-primary/10"
+      icon={<FileText className="h-4 w-4 text-pink-500" />}
+      accent="bg-pink-50"
     />
   );
 }
@@ -43,8 +43,8 @@ export function PendingStatCard({ value }: { value: number }) {
     <StatCard
       label="Pending Signature"
       value={value}
-      icon={<Clock className="h-4 w-4 text-amber-600" />}
-      accent="bg-amber-50"
+      icon={<Clock className="h-4 w-4 text-rose-400" />}
+      accent="bg-rose-50"
     />
   );
 }
@@ -54,8 +54,8 @@ export function SignedStatCard({ value }: { value: number }) {
     <StatCard
       label="Signed"
       value={value}
-      icon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
-      accent="bg-emerald-50"
+      icon={<CheckCircle2 className="h-4 w-4 text-fuchsia-500" />}
+      accent="bg-fuchsia-50"
     />
   );
 }

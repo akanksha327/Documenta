@@ -4,9 +4,9 @@ import { useAuthStore } from '@/store/auth-store';
 import { format } from 'date-fns';
 
 const statusStyles: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  signed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  draft: 'bg-slate-50 text-slate-600 border-slate-200',
+  pending: 'bg-rose-50 text-rose-600 border-rose-200',
+  signed: 'bg-pink-50 text-pink-600 border-pink-200',
+  draft: 'bg-gray-50 text-gray-500 border-gray-200',
   rejected: 'bg-red-50 text-red-600 border-red-200',
 };
 
