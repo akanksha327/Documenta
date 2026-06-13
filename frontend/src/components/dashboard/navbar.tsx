@@ -2,7 +2,7 @@
 
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
-import { FileSignature, LogOut, LayoutDashboard, FolderOpen, UserCheck } from 'lucide-react';
+import { FileSignature, LogOut, LayoutDashboard, FolderOpen, Activity, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -30,6 +30,9 @@ export function Navbar() {
   const navItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/documents', label: 'Documents', icon: FolderOpen },
+    { href: '/signatures', label: 'Signatures', icon: FileSignature },
+    { href: '/activity', label: 'Activity', icon: Activity },
+    { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (

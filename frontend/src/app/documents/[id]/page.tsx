@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { useDocumentStore } from '@/store/document-store';
@@ -29,6 +29,9 @@ export default function DocumentDetailPage() {
   const id = params.id as string;
   const token = useAuthStore((s) => s.token);
   const { activeDocument, isLoading, error, fetchDocumentById } = useDocumentStore();
+  
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [isLogsLoading, setIsLogsLoading] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -37,6 +40,38 @@ export default function DocumentDetailPage() {
       fetchDocumentById(id);
     }
   }, [token, id, router]);
+
+  useEffect(() => {
+    if (token && id) {
+      setIsLogsLoading(true);
+      fetch(`/api/audit/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to load audit logs');
+        })
+        .then((data) => {
+          setAuditLogs(data);
+          setIsLogsLoading(false);
+        })
+        .catch((err) => {
+          console.error('Audit logs error:', err);
+          setIsLogsLoading(false);
+        });
+    }
+  }, [token, id]);
+
+  const getFriendlyDevice = (ua: string | null) => {
+    if (!ua) return 'Unknown';
+    if (ua.includes('Chrome')) return 'Chrome Browser';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari Browser';
+    if (ua.includes('Firefox')) return 'Firefox Browser';
+    if (ua.includes('Edge')) return 'Edge Browser';
+    return 'Web Client';
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -239,37 +274,43 @@ export default function DocumentDetailPage() {
               </div>
             </Card>
 
-            {/* Future Signature Activity Card (Placeholder) */}
-            <Card className="border border-border bg-white p-5 shadow-sm space-y-4">
+            {/* Live Audit Log Card */}
+            <Card className="border border-[#F1F1F3] bg-white p-5 shadow-xs space-y-4 rounded-3xl">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Future Signature Activity
+                  Document Audit Trail
                 </h3>
-                <span className="inline-flex items-center rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-primary uppercase">
-                  Upcoming
+                <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-600 uppercase border border-green-100 animate-pulse">
+                  Live Feed
                 </span>
               </div>
 
-              {/* Activity Timeline Placeholder */}
-              <div className="space-y-4 relative pl-4 border-l border-border text-xs">
-                <div className="relative">
-                  <span className="absolute -left-5 top-0.5 flex h-2 w-2 rounded-full bg-primary" />
-                  <p className="font-medium text-foreground">Document Created</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Uploaded by {useAuthStore.getState().user?.name || 'Me'}
-                  </p>
+              {/* Activity Timeline */}
+              {isLogsLoading && auditLogs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-1">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-[10px] text-muted-foreground">Loading log entries...</span>
                 </div>
-                <div className="relative text-muted-foreground/60">
-                  <span className="absolute -left-5 top-0.5 flex h-2 w-2 rounded-full bg-border" />
-                  <p className="font-medium">Audit Trail Logging</p>
-                  <p className="text-[10px] mt-0.5">Pending implementation of signature flow</p>
+              ) : auditLogs.length === 0 ? (
+                <div className="text-center py-8 text-xs text-muted-foreground">
+                  No log records found for this document.
                 </div>
-                <div className="relative text-muted-foreground/60">
-                  <span className="absolute -left-5 top-0.5 flex h-2 w-2 rounded-full bg-border" />
-                  <p className="font-medium">Recipients Signing</p>
-                  <p className="text-[10px] mt-0.5">Pending implementation of signature flow</p>
+              ) : (
+                <div className="space-y-4 relative pl-4 border-l border-border text-xs max-h-[360px] overflow-y-auto pr-1 scrollbar-thin">
+                  {auditLogs.map((log) => (
+                    <div key={log.id} className="relative group">
+                      <span className="absolute -left-[20px] top-1 flex h-2 w-2 rounded-full bg-primary ring-4 ring-white" />
+                      <p className="font-semibold text-foreground">{log.action}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        By <span className="font-semibold text-foreground">{log.userName || 'System'}</span> • {format(new Date(log.createdAt), 'MMM d, yyyy h:mm a')}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground/80 mt-1 font-mono">
+                        Device: {getFriendlyDevice(log.device)} • IP: {log.ipAddress || 'unknown'}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </Card>
           </div>
         </div>

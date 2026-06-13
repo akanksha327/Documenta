@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { Navbar } from './navbar';
 import { RecentDocuments } from './recent-documents';
@@ -15,12 +16,41 @@ import {
   XCircle,
   Plus,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from 'lucide-react';
+import { format } from 'date-fns';
 import Link from 'next/link';
 
 export function Dashboard() {
   const { user, stats, setView } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isActLoading, setIsActLoading] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      setIsActLoading(true);
+      fetch('/api/audit', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to load activity logs');
+        })
+        .then((data) => {
+          setActivities(data.slice(0, 5)); // show only top 5 recent activities
+          setIsActLoading(false);
+        })
+        .catch((err) => {
+          console.error('Activity logs load error:', err);
+          setIsActLoading(false);
+        });
+    }
+  }, [token]);
 
   const quickActions = [
     {
@@ -36,23 +66,6 @@ export function Dashboard() {
       icon: FileSignature,
       href: '/documents',
       color: 'bg-purple-50 text-purple-600 border-purple-100',
-    },
-  ];
-
-  const activities = [
-    {
-      action: 'Account registered',
-      detail: 'Profile initialized successfully',
-      time: 'Just now',
-      icon: Clock,
-      color: 'text-primary bg-secondary/80',
-    },
-    {
-      action: 'Workspace configured',
-      detail: 'Document folders linked',
-      time: 'Just now',
-      icon: Settings,
-      color: 'text-purple-600 bg-purple-50',
     },
   ];
 
@@ -177,24 +190,35 @@ export function Dashboard() {
               </div>
               
               <div className="space-y-4">
-                {activities.map((act, idx) => (
-                  <div key={idx} className="flex gap-3 text-xs items-start">
-                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${act.color}`}>
-                      <act.icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
-                        {act.action}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                        {act.detail}
-                      </p>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5">
-                      {act.time}
-                    </span>
+                {isActLoading && activities.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 gap-1.5">
+                    <Loader2 className="h-4.5 w-4.5 animate-spin text-primary" />
+                    <span className="text-[10px] text-muted-foreground">Loading activity feed...</span>
                   </div>
-                ))}
+                ) : activities.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-muted-foreground">
+                    No recent activity logs.
+                  </div>
+                ) : (
+                  activities.map((act) => (
+                    <div key={act.id} className="flex gap-3 text-xs items-start">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#FCE7F3]/40 border border-[#FCE7F3]/80 text-[#D94687]">
+                        <History className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">
+                          {act.action}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                          {act.document?.originalName || 'System Event'}
+                        </p>
+                      </div>
+                      <span className="text-[9px] text-muted-foreground shrink-0 mt-0.5 font-mono">
+                        {format(new Date(act.createdAt), 'h:mm a')}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           </div>

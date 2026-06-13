@@ -100,6 +100,25 @@ function authenticate(req: any, res: any, next: any) {
   next();
 }
 
+async function logAuditEvent(documentId: string, userId: string | null, userName: string | null, action: string, req: express.Request) {
+  try {
+    const ipAddress = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || null;
+    const device = req.headers['user-agent'] || null;
+    await db.auditLog.create({
+      data: {
+        documentId,
+        userId,
+        userName,
+        action,
+        device,
+        ipAddress,
+      }
+    });
+  } catch (error) {
+    console.error('Failed to write audit log:', error);
+  }
+}
+
 // Health check endpoint
 app.get('/api', (req, res) => {
   res.json({ message: "Hello, world!" });
@@ -341,6 +360,8 @@ app.post('/api/docs/upload', authenticate, (req, res, next) => {
       }
     });
 
+    await logAuditEvent(doc.id, req.user.userId, req.user.name, 'Document uploaded', req);
+
     res.json(doc);
   } catch (error) {
     console.error('Upload error:', error);
@@ -411,6 +432,24 @@ app.get('/api/signatures/:documentId', authenticate, async (req: any, res) => {
   }
 });
 
+// GET /api/signatures/field/:id - Get a single signature field details
+app.get('/api/signatures/field/:id', authenticate, async (req: any, res) => {
+  try {
+    const signature = await db.signature.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!signature) {
+      return res.status(404).json({ error: 'Signature field not found' });
+    }
+
+    res.json(signature);
+  } catch (error) {
+    console.error('Fetch single signature error:', error);
+    res.status(500).json({ error: 'Failed to retrieve signature field' });
+  }
+});
+
 // POST /api/signatures - Create a signature field
 app.post('/api/signatures', authenticate, async (req: any, res) => {
   try {
@@ -444,6 +483,8 @@ app.post('/api/signatures', authenticate, async (req: any, res) => {
         type,
       },
     });
+
+    await logAuditEvent(documentId, req.user.userId, req.user.name, `Placed ${type} placeholder on page ${page}`, req);
 
     res.status(201).json(signature);
   } catch (error) {
@@ -481,6 +522,8 @@ app.put('/api/signatures/:id', authenticate, async (req: any, res) => {
       },
     });
 
+    await logAuditEvent(signature.documentId, req.user.userId, req.user.name, `Repositioned ${signature.type} placeholder on page ${updated.page}`, req);
+
     res.json(updated);
   } catch (error) {
     console.error('Update signature error:', error);
@@ -507,6 +550,8 @@ app.delete('/api/signatures/:id', authenticate, async (req: any, res) => {
     await db.signature.delete({
       where: { id },
     });
+
+    await logAuditEvent(signature.documentId, req.user.userId, req.user.name, `Removed ${signature.type} placeholder from page ${signature.page}`, req);
 
     res.json({ success: true, message: 'Signature field deleted successfully' });
   } catch (error) {
@@ -559,10 +604,70 @@ app.post('/api/signatures/bulk', authenticate, async (req: any, res) => {
       createdSignatures.push(created);
     }
 
+    await logAuditEvent(documentId, req.user.userId, req.user.name, `Saved changes: placed ${signatures.length} element(s) total`, req);
+
     res.json(createdSignatures);
   } catch (error) {
     console.error('Bulk save signatures error:', error);
     res.status(500).json({ error: 'Failed to bulk save signature fields' });
+  }
+});
+
+// GET /api/auth/profile
+app.get('/api/auth/profile', authenticate, async (req: any, res) => {
+  res.json({ user: req.user });
+});
+
+// GET /api/audit - Get all audit logs across all documents owned by the user
+app.get('/api/audit', authenticate, async (req: any, res) => {
+  try {
+    const logs = await db.auditLog.findMany({
+      where: {
+        document: {
+          ownerId: req.user.userId,
+        },
+      },
+      include: {
+        document: {
+          select: {
+            originalName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(logs);
+  } catch (error) {
+    console.error('Fetch all audit logs error:', error);
+    res.status(500).json({ error: 'Failed to retrieve audit logs' });
+  }
+});
+
+// GET /api/audit/:documentId - Get all audit logs for a document
+app.get('/api/audit/:documentId', authenticate, async (req: any, res) => {
+  try {
+    const documentId = req.params.documentId;
+    const document = await db.document.findUnique({
+      where: { id: documentId },
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    if (document.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized to access audit logs' });
+    }
+
+    const logs = await db.auditLog.findMany({
+      where: { documentId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(logs);
+  } catch (error) {
+    console.error('Fetch audit logs error:', error);
+    res.status(500).json({ error: 'Failed to retrieve audit logs' });
   }
 });
 
