@@ -38,9 +38,10 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   logout: () => void;
+  initializeSession: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   view: 'login',
   user: null,
   token: null,
@@ -50,12 +51,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
 
   setView: (view) => set({ view, error: null }),
-  setUser: (user, token) => set({ user, token, error: null }),
+  setUser: (user, token) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+    set({ user, token, error: null });
+  },
   setStats: (stats) => set({ stats }),
   setRecentDocuments: (docs) => set({ recentDocuments: docs }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
-  logout: () =>
+  logout: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
     set({
       user: null,
       token: null,
@@ -63,5 +74,44 @@ export const useAuthStore = create<AuthState>((set) => ({
       recentDocuments: [],
       view: 'login',
       error: null,
-    }),
+    });
+  },
+  initializeSession: async () => {
+    if (typeof window === 'undefined') return;
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    if (!token || !storedUser) {
+      set({ isLoading: false });
+      return;
+    }
+
+    set({ isLoading: true });
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const userData = await res.json();
+        set({ user: userData, token, view: 'dashboard' });
+
+        const sessionRes = await fetch(`/api/auth/session?token=${token}`);
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          set({ stats: sessionData.stats, recentDocuments: sessionData.recentDocuments });
+        }
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        set({ user: null, token: null, view: 'login' });
+      }
+    } catch (err) {
+      console.error('Session initialization error:', err);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 }));

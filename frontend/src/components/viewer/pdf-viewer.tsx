@@ -35,7 +35,9 @@ export function PDFViewer({ fileUrl }: PDFViewerProps) {
   // Full URL for fetching PDF (removes Next.js routing constraints)
   const absolutePdfUrl = fileUrl.startsWith('http')
     ? fileUrl
-    : `http://localhost:3001${fileUrl}`;
+    : typeof window !== 'undefined'
+      ? `${window.location.origin}${fileUrl}`
+      : fileUrl;
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
