@@ -1,9 +1,10 @@
 import React from 'react';
-import { FileText, Eye, Trash2, Calendar, HardDrive } from 'lucide-react';
+import { FileText, Eye, Trash2, Calendar, HardDrive, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { Document } from '@/store/document-store';
+import { Document, useDocumentStore } from '@/store/document-store';
 import { StatusBadge } from './status-badge';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 interface DocumentCardProps {
   document: Document;
@@ -11,6 +12,27 @@ interface DocumentCardProps {
 }
 
 export function DocumentCard({ document, onDelete }: DocumentCardProps) {
+  const { toast } = useToast();
+  const shareDocument = useDocumentStore((s) => s.shareDocument);
+
+  const handleShare = async (id: string) => {
+    const token = await shareDocument(id);
+    if (token) {
+      const shareUrl = `${window.location.origin}/documents/${id}/viewer`;
+      navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link Copied",
+        description: "Signing link copied to clipboard successfully!",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Sharing Failed",
+        description: "Could not generate sharing link for this document.",
+      });
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -53,6 +75,13 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
 
       {/* Footer Actions */}
       <div className="flex items-center gap-2 pt-1">
+        <button
+          onClick={() => handleShare(document.id)}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground hover:bg-secondary hover:text-primary transition-all active:scale-95"
+          title="Share Signing Link"
+        >
+          <Share2 className="h-4 w-4" />
+        </button>
         <Link
           href={`/documents/${document.id}`}
           className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-95"

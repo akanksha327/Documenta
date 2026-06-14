@@ -259,6 +259,14 @@ app.get('/api/auth/session', async (req, res) => {
       where: { ownerId: session.userId, status: 'Signed' },
     });
 
+    const sharedResult = await db.document.aggregate({
+      where: { ownerId: session.userId },
+      _sum: {
+        sharedCount: true,
+      },
+    });
+    const sharedLinks = sharedResult._sum.sharedCount || 0;
+
     const recentDocuments = await db.document.findMany({
       where: { ownerId: session.userId },
       orderBy: { uploadedAt: 'desc' },
@@ -271,6 +279,7 @@ app.get('/api/auth/session', async (req, res) => {
         total: totalDocuments,
         pending: pendingDocuments,
         signed: signedDocuments,
+        sharedLinks,
       },
       recentDocuments,
     });
@@ -331,6 +340,43 @@ app.get('/api/docs/:id', authenticate, async (req: any, res) => {
   } catch (error) {
     console.error('Fetch document detail error:', error);
     res.status(500).json({ error: 'Failed to retrieve document details' });
+  }
+});
+
+// PUT /api/docs/:id/share - Generate share link and track stats
+app.put('/api/docs/:id/share', authenticate, async (req: any, res) => {
+  try {
+    const id = req.params.id;
+    const document = await db.document.findUnique({
+      where: { id },
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    if (document.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized to share this document' });
+    }
+
+    // Generate token if it doesn't already exist
+    const token = document.shareToken || `${id}-share-${Date.now()}`;
+    const updated = await db.document.update({
+      where: { id },
+      data: {
+        shareToken: token,
+        sharedCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    await logAuditEvent(id, req.user.userId, req.user.name, 'Generated shareable signing link', req);
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Share document error:', error);
+    res.status(500).json({ error: 'Failed to share document' });
   }
 });
 

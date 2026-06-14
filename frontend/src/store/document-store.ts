@@ -13,6 +13,8 @@ export interface Document {
   uploadedAt: string;
   createdAt: string;
   updatedAt: string;
+  sharedCount?: number;
+  shareToken?: string | null;
 }
 
 interface DocumentStats {
@@ -21,6 +23,7 @@ interface DocumentStats {
   pending: number;
   signed: number;
   rejected: number;
+  sharedLinks: number;
 }
 
 interface DocumentState {
@@ -40,11 +43,12 @@ interface DocumentState {
   fetchDocumentById: (id: string) => Promise<Document | null>;
   uploadDocument: (file: File) => Promise<boolean>;
   deleteDocument: (id: string) => Promise<boolean>;
+  shareDocument: (id: string) => Promise<string | null>;
 }
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
   documents: [],
-  stats: { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0 },
+  stats: { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0, sharedLinks: 0 },
   isLoading: false,
   isUploading: false,
   uploadProgress: 0,
@@ -91,13 +95,14 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       const stats = documents.reduce(
         (acc, doc) => {
           acc.total++;
-          const statusKey = doc.status.toLowerCase() as keyof Omit<DocumentStats, 'total'>;
+          const statusKey = doc.status.toLowerCase() as keyof Omit<DocumentStats, 'total' | 'sharedLinks'>;
           if (acc[statusKey] !== undefined) {
             acc[statusKey]++;
           }
+          acc.sharedLinks += doc.sharedCount || 0;
           return acc;
         },
-        { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0 }
+        { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0, sharedLinks: 0 }
       );
 
       // Fetch all documents for stats calculations if a filter is active
@@ -114,13 +119,14 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
           finalStats = allDocs.reduce(
             (acc, doc) => {
               acc.total++;
-              const statusKey = doc.status.toLowerCase() as keyof Omit<DocumentStats, 'total'>;
+              const statusKey = doc.status.toLowerCase() as keyof Omit<DocumentStats, 'total' | 'sharedLinks'>;
               if (acc[statusKey] !== undefined) {
                 acc[statusKey]++;
               }
+              acc.sharedLinks += doc.sharedCount || 0;
               return acc;
             },
-            { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0 }
+            { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0, sharedLinks: 0 }
           );
         }
       }
@@ -229,6 +235,41 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     } catch (err: any) {
       set({ error: err.message || 'Delete failed', isLoading: false });
       return false;
+    }
+  },
+
+  shareDocument: async (id) => {
+    const token = useAuthStore.getState().token;
+    if (!token) return null;
+
+    set({ isLoading: true, error: null });
+    try {
+      const res = await fetch(`/api/docs/${id}/share`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to generate sharing link');
+      }
+
+      const updatedDoc = await res.json();
+      
+      // Update locally
+      set((state) => ({
+        documents: state.documents.map((d) => (d.id === id ? { ...d, ...updatedDoc } : d)),
+        activeDocument: state.activeDocument?.id === id ? { ...state.activeDocument, ...updatedDoc } : state.activeDocument,
+        isLoading: false,
+      }));
+
+      // Refresh documents list to pull latest statistics
+      get().fetchDocuments();
+      return updatedDoc.shareToken;
+    } catch (err: any) {
+      set({ error: err.message || 'Share failed', isLoading: false });
+      return null;
     }
   },
 }));

@@ -1,9 +1,10 @@
 import React from 'react';
-import { FileText, Eye, Trash2, Calendar, HardDrive } from 'lucide-react';
+import { FileText, Eye, Trash2, Calendar, HardDrive, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { Document } from '@/store/document-store';
+import { Document, useDocumentStore } from '@/store/document-store';
 import { StatusBadge } from './status-badge';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 interface DocumentTableProps {
   documents: Document[];
@@ -11,6 +12,27 @@ interface DocumentTableProps {
 }
 
 export function DocumentTable({ documents, onDelete }: DocumentTableProps) {
+  const { toast } = useToast();
+  const shareDocument = useDocumentStore((s) => s.shareDocument);
+
+  const handleShare = async (id: string) => {
+    const token = await shareDocument(id);
+    if (token) {
+      const shareUrl = `${window.location.origin}/documents/${id}/viewer`;
+      navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link Copied",
+        description: "Signing link copied to clipboard successfully!",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Sharing Failed",
+        description: "Could not generate sharing link for this document.",
+      });
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -73,6 +95,13 @@ export function DocumentTable({ documents, onDelete }: DocumentTableProps) {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1.5">
+                    <button
+                      onClick={() => handleShare(doc.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:bg-secondary hover:text-primary transition-all active:scale-95"
+                      title="Share Signing Link"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </button>
                     <Link
                       href={`/documents/${doc.id}`}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-95"

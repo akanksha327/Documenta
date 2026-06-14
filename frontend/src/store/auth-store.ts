@@ -12,6 +12,7 @@ interface DocumentStats {
   total: number;
   pending: number;
   signed: number;
+  sharedLinks: number;
 }
 
 interface RecentDocument {

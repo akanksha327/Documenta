@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuthStore } from '@/store/auth-store';
+import { useDocumentStore } from '@/store/document-store';
 import { format } from 'date-fns';
 import { FileText, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -13,9 +13,10 @@ const badgeStyles: Record<string, string> = {
 };
 
 export function RecentDocuments() {
-  const { recentDocuments } = useAuthStore();
+  const { documents } = useDocumentStore();
+  const recentDocs = documents.slice(0, 5);
 
-  if (recentDocuments.length === 0) {
+  if (recentDocs.length === 0) {
     return (
       <div className="rounded-[2rem] border border-border/80 bg-white p-8 text-center">
         <p className="text-xs text-muted-foreground">No documents uploaded yet.</p>
@@ -26,7 +27,7 @@ export function RecentDocuments() {
   return (
     <div className="rounded-[2rem] border border-border/80 bg-white overflow-hidden shadow-sm">
       <div className="divide-y divide-border/60">
-        {recentDocuments.map((doc) => {
+        {recentDocs.map((doc) => {
           // Normalize status casing
           const normalizedStatus = doc.status.charAt(0).toUpperCase() + doc.status.slice(1);
           return (
@@ -43,10 +44,10 @@ export function RecentDocuments() {
                     href={`/documents/${doc.id}`}
                     className="truncate text-xs font-semibold text-foreground hover:text-primary transition-colors block"
                   >
-                    {doc.title}
+                    {doc.originalName}
                   </Link>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {format(new Date(doc.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(doc.uploadedAt), 'MMM d, yyyy')}
                   </p>
                 </div>
               </div>

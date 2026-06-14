@@ -33,6 +33,8 @@ model Document {
   updatedAt    DateTime    @updatedAt
   signatures   Signature[]
   auditLogs    AuditLog[]
+  sharedCount  Int         @default(0)
+  shareToken   String?
 }
 
 model Signature {

@@ -22,8 +22,11 @@ import {
 import { format } from 'date-fns';
 import Link from 'next/link';
 
+import { useDocumentStore } from '@/store/document-store';
+
 export function Dashboard() {
-  const { user, stats, setView } = useAuthStore();
+  const { user, setView } = useAuthStore();
+  const { stats, fetchDocuments } = useDocumentStore();
   const token = useAuthStore((s) => s.token);
 
   const [activities, setActivities] = useState<any[]>([]);
@@ -31,6 +34,7 @@ export function Dashboard() {
 
   useEffect(() => {
     if (token) {
+      fetchDocuments();
       setIsActLoading(true);
       fetch('/api/audit', {
         headers: {
@@ -94,7 +98,7 @@ export function Dashboard() {
             </div>
 
             {/* Compact Statistics Badges Row */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card className="rounded-[1.5rem] border border-border/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-primary">
@@ -127,6 +131,18 @@ export function Dashboard() {
                   <div>
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Signed</p>
                     <p className="text-lg font-bold text-foreground">{stats?.signed ?? 0}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="rounded-[1.5rem] border border-border/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-[#A855F7]">
+                    <TrendingUp className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Shared Links</p>
+                    <p className="text-lg font-bold text-foreground">{stats?.sharedLinks ?? 0}</p>
                   </div>
                 </div>
               </Card>

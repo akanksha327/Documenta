@@ -19,9 +19,11 @@ import {
   Loader2,
   Activity,
   FileSignature,
+  Share2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DocumentDetailPage() {
   const router = useRouter();
@@ -29,6 +31,26 @@ export default function DocumentDetailPage() {
   const id = params.id as string;
   const token = useAuthStore((s) => s.token);
   const { activeDocument, isLoading, error, fetchDocumentById } = useDocumentStore();
+  const { toast } = useToast();
+  const shareDocument = useDocumentStore((s) => s.shareDocument);
+
+  const handleShare = async () => {
+    const shareToken = await shareDocument(id);
+    if (shareToken) {
+      const shareUrl = `${window.location.origin}/documents/${id}/viewer`;
+      navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link Copied",
+        description: "Signing link copied to clipboard successfully!",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Sharing Failed",
+        description: "Could not generate sharing link for this document.",
+      });
+    }
+  };
   
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [isLogsLoading, setIsLogsLoading] = useState(false);
@@ -164,6 +186,15 @@ export default function DocumentDetailPage() {
                     <FileSignature className="h-3.5 w-3.5" />
                     <span>Open Editor</span>
                   </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShare}
+                    className="h-8 gap-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-primary transition-all active:scale-95"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                    <span>Share Link</span>
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"

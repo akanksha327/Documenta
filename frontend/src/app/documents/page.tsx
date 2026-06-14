@@ -23,6 +23,7 @@ import {
   Plus,
   Loader2,
   X,
+  Share2,
 } from 'lucide-react';
 
 export default function DocumentsPage() {
@@ -92,9 +93,9 @@ export default function DocumentsPage() {
             icon={<Files className="h-4 w-4" />}
           />
           <StatsCard
-            label="Draft"
-            value={stats.draft}
-            icon={<FileSignature className="h-4 w-4 text-blue-500" />}
+            label="Shared"
+            value={stats.sharedLinks}
+            icon={<Share2 className="h-4 w-4 text-blue-500" />}
           />
           <StatsCard
             label="Pending"
