@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IDocument extends MongooseDocument {
+export interface IDocument extends Document {
   ownerId: mongoose.Types.ObjectId | string;
   fileName: string;
   originalName: string;
@@ -37,4 +37,4 @@ const DocumentSchema = new Schema<IDocument>(
   }
 );
 
-export default mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);
+export const DocumentModel = mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);

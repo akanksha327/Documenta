@@ -1,5 +1,16 @@
-import { PrismaClient } from '@prisma/client';
+import mongoose from 'mongoose';
 
-export const db = new PrismaClient({
-  log: ['query'],
-});
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/signflow';
+
+export async function dbConnect() {
+  try {
+    if (mongoose.connection.readyState >= 1) {
+      return;
+    }
+    await mongoose.connect(MONGODB_URI);
+    console.log('Connected to MongoDB successfully');
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
+  }
+}

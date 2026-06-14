@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface ISignature extends MongooseDocument {
+export interface ISignature extends Document {
   documentId: mongoose.Types.ObjectId | string;
   userId: mongoose.Types.ObjectId | string;
   page: number;
@@ -29,4 +29,4 @@ const SignatureSchema = new Schema<ISignature>(
   }
 );
 
-export default mongoose.models.Signature || mongoose.model<ISignature>('Signature', SignatureSchema);
+export const SignatureModel = mongoose.models.Signature || mongoose.model<ISignature>('Signature', SignatureSchema);

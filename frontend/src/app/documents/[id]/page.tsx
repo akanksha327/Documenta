@@ -198,14 +198,14 @@ export default function DocumentDetailPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => window.open(activeDocument.fileUrl, '_blank')}
+                    onClick={() => window.open(`http://localhost:3001${activeDocument.fileUrl}`, '_blank')}
                     className="h-8 gap-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>Open PDF</span>
                   </Button>
                   <a
-                    href={activeDocument.fileUrl}
+                    href={`http://localhost:3001${activeDocument.fileUrl}`}
                     download={activeDocument.originalName}
                     className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-[#F1F1F3] bg-white px-3 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
                   >

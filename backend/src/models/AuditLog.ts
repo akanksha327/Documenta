@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IAuditLog extends MongooseDocument {
+export interface IAuditLog extends Document {
   documentId: mongoose.Types.ObjectId | string;
   userId?: mongoose.Types.ObjectId | string | null;
   userName?: string | null;
@@ -22,4 +22,4 @@ const AuditLogSchema = new Schema<IAuditLog>(
   }
 );
 
-export default mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);
+export const AuditLogModel = mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);
