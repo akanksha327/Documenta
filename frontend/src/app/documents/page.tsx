@@ -130,7 +130,6 @@ export default function DocumentsPage() {
           </div>
         ) : documents.length === 0 ? (
           <EmptyState
-            onActionClick={() => setIsUploadOpen(true)}
             title={
               searchQuery || statusFilter !== 'All'
                 ? 'No matching documents found'

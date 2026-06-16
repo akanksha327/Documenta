@@ -32,10 +32,8 @@ export function PDFViewer({ fileUrl }: PDFViewerProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const pageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Full URL for fetching PDF (removes Next.js routing constraints)
-  const absolutePdfUrl = fileUrl.startsWith('http')
-    ? fileUrl
-    : `http://localhost:3001${fileUrl}`;
+  // Load PDF relatively via Next.js proxy/rewrites to bypass CORS preflights
+  const absolutePdfUrl = fileUrl;
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);

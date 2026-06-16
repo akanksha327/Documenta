@@ -79,11 +79,24 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         url += `&search=${encodeURIComponent(searchQuery)}`;
       }
 
-      const res = await fetch(url, {
+      const fetchFiltered = fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      const fetchAllForStats = (statusFilter !== 'All' || searchQuery)
+        ? fetch('/api/docs?status=All', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        : null;
+
+      const [res, allRes] = await Promise.all([
+        fetchFiltered,
+        fetchAllForStats || Promise.resolve(null),
+      ]);
 
       if (!res.ok) {
         throw new Error('Failed to fetch documents');
@@ -105,30 +118,21 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0, sharedLinks: 0 }
       );
 
-      // Fetch all documents for stats calculations if a filter is active
       let finalStats = stats;
-      if (statusFilter !== 'All' || searchQuery) {
-        // Fetch all user documents without filters just to update stats cards
-        const allRes = await fetch('/api/docs?status=All', {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      if (allRes && allRes.ok) {
+        const allDocs: Document[] = await allRes.json();
+        finalStats = allDocs.reduce(
+          (acc, doc) => {
+            acc.total++;
+            const statusKey = doc.status.toLowerCase() as keyof Omit<DocumentStats, 'total' | 'sharedLinks'>;
+            if (acc[statusKey] !== undefined) {
+              acc[statusKey]++;
+            }
+            acc.sharedLinks += doc.sharedCount || 0;
+            return acc;
           },
-        });
-        if (allRes.ok) {
-          const allDocs: Document[] = await allRes.json();
-          finalStats = allDocs.reduce(
-            (acc, doc) => {
-              acc.total++;
-              const statusKey = doc.status.toLowerCase() as keyof Omit<DocumentStats, 'total' | 'sharedLinks'>;
-              if (acc[statusKey] !== undefined) {
-                acc[statusKey]++;
-              }
-              acc.sharedLinks += doc.sharedCount || 0;
-              return acc;
-            },
-            { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0, sharedLinks: 0 }
-          );
-        }
+          { total: 0, draft: 0, pending: 0, signed: 0, rejected: 0, sharedLinks: 0 }
+        );
       }
 
       set({ documents, stats: finalStats, isLoading: false });

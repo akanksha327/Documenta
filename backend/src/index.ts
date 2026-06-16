@@ -45,6 +45,7 @@ app.use(cors({
   origin: ['http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
+  maxAge: 86400, // Cache preflight OPTIONS response for 24 hours
 }));
 
 app.use(express.json());
@@ -246,19 +247,17 @@ app.get('/api/auth/session', async (req, res) => {
 
     const ownerId = user._id.toString();
 
-    const totalDocuments = await DocumentModel.countDocuments({ ownerId });
-    const pendingDocuments = await DocumentModel.countDocuments({ ownerId, status: 'Pending' });
-    const signedDocuments = await DocumentModel.countDocuments({ ownerId, status: 'Signed' });
-
-    const sharedResult = await DocumentModel.aggregate([
-      { $match: { ownerId: new mongoose.Types.ObjectId(ownerId) } },
-      { $group: { _id: null, totalShared: { $sum: '$sharedCount' } } }
+    const [totalDocuments, pendingDocuments, signedDocuments, sharedResult, recentDocs] = await Promise.all([
+      DocumentModel.countDocuments({ ownerId }),
+      DocumentModel.countDocuments({ ownerId, status: 'Pending' }),
+      DocumentModel.countDocuments({ ownerId, status: 'Signed' }),
+      DocumentModel.aggregate([
+        { $match: { ownerId: new mongoose.Types.ObjectId(ownerId) } },
+        { $group: { _id: null, totalShared: { $sum: '$sharedCount' } } }
+      ]),
+      DocumentModel.find({ ownerId }).sort({ uploadedAt: -1 }).limit(10)
     ]);
     const sharedLinks = sharedResult.length > 0 ? sharedResult[0].totalShared : 0;
-
-    const recentDocs = await DocumentModel.find({ ownerId })
-      .sort({ uploadedAt: -1 })
-      .limit(10);
 
     const mappedRecent = recentDocs.map((doc) => ({
       id: doc._id.toString(),
@@ -486,9 +485,11 @@ app.delete('/api/docs/:id', authenticate, async (req: any, res) => {
       return res.status(403).json({ error: 'Unauthorized to delete this document' });
     }
 
-    await DocumentModel.findByIdAndDelete(req.params.id);
-    await SignatureModel.deleteMany({ documentId: req.params.id });
-    await AuditLogModel.deleteMany({ documentId: req.params.id });
+    await Promise.all([
+      DocumentModel.findByIdAndDelete(req.params.id),
+      SignatureModel.deleteMany({ documentId: req.params.id }),
+      AuditLogModel.deleteMany({ documentId: req.params.id }),
+    ]);
 
     if (doc.fileName !== 'sample.pdf') {
       const filePath = path.join(uploadDir, doc.fileName);
@@ -592,32 +593,31 @@ app.post('/api/signatures/bulk', authenticate, async (req: any, res) => {
 
     await SignatureModel.deleteMany({ documentId });
 
-    const createdSignatures = [];
-    for (const sig of signatures) {
-      const created = await SignatureModel.create({
-        documentId,
-        userId: req.user.userId,
-        page: parseInt(sig.page),
-        x: parseFloat(sig.x),
-        y: parseFloat(sig.y),
-        width: parseFloat(sig.width),
-        height: parseFloat(sig.height),
-        type: sig.type,
-      });
-      createdSignatures.push({
-        id: created._id.toString(),
-        documentId: created.documentId.toString(),
-        userId: created.userId.toString(),
-        page: created.page,
-        x: created.x,
-        y: created.y,
-        width: created.width,
-        height: created.height,
-        type: created.type,
-        createdAt: created.createdAt.toISOString(),
-        updatedAt: created.updatedAt.toISOString(),
-      });
-    }
+    const signaturesToCreate = signatures.map((sig) => ({
+      documentId,
+      userId: req.user.userId,
+      page: parseInt(sig.page),
+      x: parseFloat(sig.x),
+      y: parseFloat(sig.y),
+      width: parseFloat(sig.width),
+      height: parseFloat(sig.height),
+      type: sig.type,
+    }));
+
+    const createdSigs = await SignatureModel.insertMany(signaturesToCreate);
+    const createdSignatures = createdSigs.map((created) => ({
+      id: created._id.toString(),
+      documentId: created.documentId.toString(),
+      userId: created.userId.toString(),
+      page: created.page,
+      x: created.x,
+      y: created.y,
+      width: created.width,
+      height: created.height,
+      type: created.type,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    }));
 
     await logAuditEvent(documentId, req.user.userId, req.user.name, `Saved changes: placed ${signatures.length} element(s) total`, req);
 

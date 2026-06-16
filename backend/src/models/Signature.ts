@@ -15,7 +15,7 @@ export interface ISignature extends Document {
 
 const SignatureSchema = new Schema<ISignature>(
   {
-    documentId: { type: Schema.Types.ObjectId, ref: 'Document', required: true },
+    documentId: { type: Schema.Types.ObjectId, ref: 'Document', required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     page: { type: Number, required: true },
     x: { type: Number, required: true },

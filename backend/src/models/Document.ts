@@ -17,7 +17,7 @@ export interface IDocument extends Document {
 
 const DocumentSchema = new Schema<IDocument>(
   {
-    ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     fileName: { type: String, required: true },
     originalName: { type: String, required: true },
     fileSize: { type: Number, required: true },
@@ -26,11 +26,12 @@ const DocumentSchema = new Schema<IDocument>(
       type: String,
       enum: ['Draft', 'Pending', 'Signed', 'Rejected'],
       default: 'Draft',
+      index: true,
     },
     fileUrl: { type: String, required: true },
     sharedCount: { type: Number, default: 0 },
     shareToken: { type: String, default: null },
-    uploadedAt: { type: Date, default: Date.now },
+    uploadedAt: { type: Date, default: Date.now, index: true },
   },
   {
     timestamps: true,
