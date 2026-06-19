@@ -50,8 +50,8 @@ type AuthenticatedRequest = Request & {
   file?: Express.Multer.File;
 };
 
-// Connect to MongoDB
-await dbConnect();
+// Connect to MongoDB (non-blocking)
+dbConnect();
 
 // Setup Uploads Directory
 const uploadDir = path.join(__dirname, '../uploads');
