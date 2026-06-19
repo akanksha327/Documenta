@@ -1,4 +1,4 @@
-# Document Signature App
+# SignForge - Document Signature App
 
 A modern, secure SaaS platform for uploading, signing, managing, and tracking PDF documents. Built with React/Next.js, Node.js/Express, MongoDB, and JSON Web Tokens.
 
@@ -22,7 +22,7 @@ A modern, secure SaaS platform for uploading, signing, managing, and tracking PD
 3. Configure `.env` with connection credentials:
    ```env
    PORT=3001
-   MONGODB_URI=mongodb://localhost:27017/signflow
+   MONGODB_URI=mongodb://localhost:27017/signforge
    JWT_SECRET=DOCUMENT_SIGNATURE_APP_SECRET_2026
    JWT_EXPIRES_IN=7d
    ```

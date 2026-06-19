@@ -1,4 +1,4 @@
-# SignFlow System Architecture
+# SignForge System Architecture
 
 This project is structured as a separate backend and frontend application:
 

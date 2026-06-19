@@ -9,6 +9,10 @@ export interface ISignature extends Document {
   width: number;
   height: number;
   type: 'signature' | 'name' | 'date';
+  value?: string;
+  fontFamily?: string;
+  isSigned?: boolean;
+  signatureHash?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +27,10 @@ const SignatureSchema = new Schema<ISignature>(
     width: { type: Number, required: true },
     height: { type: Number, required: true },
     type: { type: String, enum: ['signature', 'name', 'date'], required: true },
+    value: { type: String, default: '' },
+    fontFamily: { type: String, default: '' },
+    isSigned: { type: Boolean, default: false },
+    signatureHash: { type: String, default: '' },
   },
   {
     timestamps: true,

@@ -1,7 +1,9 @@
 import express from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import multer from 'multer';
+import type { FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
@@ -13,6 +15,7 @@ import { User } from './models/User.js';
 import { DocumentModel } from './models/Document.js';
 import { SignatureModel } from './models/Signature.js';
 import { AuditLogModel } from './models/AuditLog.js';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 dotenv.config();
 
@@ -21,6 +24,31 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const maxUploadSizeMb = Number(process.env.MAX_UPLOAD_SIZE_MB || 10);
+const maxUploadSizeBytes = maxUploadSizeMb * 1024 * 1024;
+const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+interface AuthenticatedUser {
+  userId: string;
+  name: string;
+  email: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user: AuthenticatedUser;
+    }
+  }
+}
+
+type AuthenticatedRequest = Request & {
+  user: AuthenticatedUser;
+  file?: Express.Multer.File;
+};
 
 // Connect to MongoDB
 await dbConnect();
@@ -35,14 +63,14 @@ if (!fs.existsSync(uploadDir)) {
 const samplePdfPath = path.join(uploadDir, 'sample.pdf');
 if (!fs.existsSync(samplePdfPath)) {
   const minimalPdf = Buffer.from(
-    '%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << >> /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 40 >>\nstream\nBT /F1 24 Tf 100 700 Td (SignFlow Sample PDF) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f\n0000000009 00000 n\n0000000056 00000 n\n0000000111 00000 n\n0000000212 00000 n\ntrailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n301\n%%EOF\n'
+    '%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << >> /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 41 >>\nstream\nBT /F1 24 Tf 100 700 Td (SignForge Sample PDF) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f\n0000000009 00000 n\n0000000056 00000 n\n0000000111 00000 n\n0000000213 00000 n\ntrailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n302\n%%EOF\n'
   );
   fs.writeFileSync(samplePdfPath, minimalPdf);
 }
 
 // Configure CORS
 app.use(cors({
-  origin: ['http://localhost:3000'],
+  origin: corsOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   maxAge: 86400, // Cache preflight OPTIONS response for 24 hours
@@ -65,22 +93,22 @@ const storage = multer.diskStorage({
   }
 });
 
-const fileFilter = (req: any, file: any, cb: any) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   if (file.mimetype === 'application/pdf') {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF files are allowed'), false);
+    cb(new Error('Only PDF files are allowed'));
   }
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: maxUploadSizeBytes }
 });
 
 // Authentication Middleware
-async function authenticate(req: any, res: any, next: any) {
+async function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     let token = '';
@@ -105,7 +133,7 @@ async function authenticate(req: any, res: any, next: any) {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    req.user = {
+    (req as AuthenticatedRequest).user = {
       userId: user._id.toString(),
       name: user.name,
       email: user.email,
@@ -166,15 +194,6 @@ app.post('/api/auth/register', async (req, res) => {
       password: hashedPassword,
     });
 
-    // Seed sample documents
-    await DocumentModel.create([
-      { fileName: 'sample.pdf', originalName: 'Employment Agreement - Q3 2026.pdf', fileSize: 102400, fileType: 'application/pdf', status: 'Signed', fileUrl: '/uploads/sample.pdf', ownerId: user._id },
-      { fileName: 'sample.pdf', originalName: 'Non-Disclosure Agreement.pdf', fileSize: 85600, fileType: 'application/pdf', status: 'Pending', fileUrl: '/uploads/sample.pdf', ownerId: user._id },
-      { fileName: 'sample.pdf', originalName: 'Vendor Service Contract.pdf', fileSize: 142000, fileType: 'application/pdf', status: 'Pending', fileUrl: '/uploads/sample.pdf', ownerId: user._id },
-      { fileName: 'sample.pdf', originalName: 'Leave Policy Acknowledgment.pdf', fileSize: 51200, fileType: 'application/pdf', status: 'Signed', fileUrl: '/uploads/sample.pdf', ownerId: user._id },
-      { fileName: 'sample.pdf', originalName: 'Project Scope Amendment.pdf', fileSize: 64000, fileType: 'application/pdf', status: 'Draft', fileUrl: '/uploads/sample.pdf', ownerId: user._id },
-      { fileName: 'sample.pdf', originalName: 'Client Onboarding Checklist.pdf', fileSize: 38400, fileType: 'application/pdf', status: 'Rejected', fileUrl: '/uploads/sample.pdf', ownerId: user._id },
-    ]);
 
     res.json({
       success: true,
@@ -293,7 +312,7 @@ app.get('/api/auth/session', async (req, res) => {
 });
 
 // GET /api/auth/me
-app.get('/api/auth/me', authenticate, async (req: any, res) => {
+app.get('/api/auth/me', authenticate, async (req: Request, res: Response) => {
   res.json({
     id: req.user.userId,
     name: req.user.name,
@@ -302,12 +321,12 @@ app.get('/api/auth/me', authenticate, async (req: any, res) => {
 });
 
 // GET /api/docs
-app.get('/api/docs', authenticate, async (req: any, res) => {
+app.get('/api/docs', authenticate, async (req: Request, res: Response) => {
   try {
     const { status, search } = req.query;
     const ownerId = req.user.userId;
 
-    const query: any = { ownerId };
+    const query: Record<string, unknown> = { ownerId };
 
     if (status && status !== 'All') {
       query.status = status;
@@ -343,7 +362,7 @@ app.get('/api/docs', authenticate, async (req: any, res) => {
 });
 
 // GET /api/docs/:id
-app.get('/api/docs/:id', authenticate, async (req: any, res) => {
+app.get('/api/docs/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const doc = await DocumentModel.findById(req.params.id);
 
@@ -379,7 +398,7 @@ app.get('/api/docs/:id', authenticate, async (req: any, res) => {
 });
 
 // PUT /api/docs/:id/share
-app.put('/api/docs/:id/share', authenticate, async (req: any, res) => {
+app.put('/api/docs/:id/share', authenticate, async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const document = await DocumentModel.findById(id);
@@ -435,7 +454,7 @@ app.post('/api/docs/upload', authenticate, (req, res, next) => {
     }
     next();
   });
-}, async (req: any, res) => {
+}, async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Please upload a PDF file' });
@@ -473,7 +492,7 @@ app.post('/api/docs/upload', authenticate, (req, res, next) => {
 });
 
 // DELETE /api/docs/:id
-app.delete('/api/docs/:id', authenticate, async (req: any, res) => {
+app.delete('/api/docs/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const doc = await DocumentModel.findById(req.params.id);
 
@@ -506,7 +525,7 @@ app.delete('/api/docs/:id', authenticate, async (req: any, res) => {
 });
 
 // GET /api/signatures/:documentId
-app.get('/api/signatures/:documentId', authenticate, async (req: any, res) => {
+app.get('/api/signatures/:documentId', authenticate, async (req: Request, res: Response) => {
   try {
     const documentId = req.params.documentId;
     const document = await DocumentModel.findById(documentId);
@@ -531,6 +550,10 @@ app.get('/api/signatures/:documentId', authenticate, async (req: any, res) => {
       width: sig.width,
       height: sig.height,
       type: sig.type,
+      value: sig.value || '',
+      fontFamily: sig.fontFamily || '',
+      isSigned: !!sig.isSigned,
+      signatureHash: sig.signatureHash || '',
       createdAt: sig.createdAt.toISOString(),
       updatedAt: sig.updatedAt.toISOString(),
     }));
@@ -543,7 +566,7 @@ app.get('/api/signatures/:documentId', authenticate, async (req: any, res) => {
 });
 
 // GET /api/signatures/field/:id
-app.get('/api/signatures/field/:id', authenticate, async (req: any, res) => {
+app.get('/api/signatures/field/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const signature = await SignatureModel.findById(req.params.id);
 
@@ -561,6 +584,10 @@ app.get('/api/signatures/field/:id', authenticate, async (req: any, res) => {
       width: signature.width,
       height: signature.height,
       type: signature.type,
+      value: signature.value || '',
+      fontFamily: signature.fontFamily || '',
+      isSigned: !!signature.isSigned,
+      signatureHash: signature.signatureHash || '',
       createdAt: signature.createdAt.toISOString(),
       updatedAt: signature.updatedAt.toISOString(),
     };
@@ -573,7 +600,7 @@ app.get('/api/signatures/field/:id', authenticate, async (req: any, res) => {
 });
 
 // POST /api/signatures/bulk
-app.post('/api/signatures/bulk', authenticate, async (req: any, res) => {
+app.post('/api/signatures/bulk', authenticate, async (req: Request, res: Response) => {
   try {
     const { documentId, signatures } = req.body;
 
@@ -602,6 +629,10 @@ app.post('/api/signatures/bulk', authenticate, async (req: any, res) => {
       width: parseFloat(sig.width),
       height: parseFloat(sig.height),
       type: sig.type,
+      value: sig.value || '',
+      fontFamily: sig.fontFamily || '',
+      isSigned: !!sig.isSigned,
+      signatureHash: sig.signatureHash || '',
     }));
 
     const createdSigs = await SignatureModel.insertMany(signaturesToCreate);
@@ -615,11 +646,15 @@ app.post('/api/signatures/bulk', authenticate, async (req: any, res) => {
       width: created.width,
       height: created.height,
       type: created.type,
+      value: created.value || '',
+      fontFamily: created.fontFamily || '',
+      isSigned: !!created.isSigned,
+      signatureHash: created.signatureHash || '',
       createdAt: created.createdAt.toISOString(),
       updatedAt: created.updatedAt.toISOString(),
     }));
 
-    await logAuditEvent(documentId, req.user.userId, req.user.name, `Saved changes: placed ${signatures.length} element(s) total`, req);
+    await logAuditEvent(documentId, req.user.userId, req.user.name, `Saved changes: placed/updated ${signatures.length} element(s) total`, req);
 
     res.json(createdSignatures);
   } catch (error) {
@@ -628,8 +663,148 @@ app.post('/api/signatures/bulk', authenticate, async (req: any, res) => {
   }
 });
 
+async function signPdfDocument(documentId: string) {
+  const document = await DocumentModel.findById(documentId);
+  if (!document) throw new Error('Document not found');
+
+  const signatures = await SignatureModel.find({ documentId, isSigned: true });
+  if (signatures.length === 0) {
+    return;
+  }
+
+  // Load the original PDF file
+  const originalPath = path.join(__dirname, '../uploads', document.fileName);
+  if (!fs.existsSync(originalPath)) {
+    throw new Error('Original PDF file not found');
+  }
+
+  const pdfBytes = fs.readFileSync(originalPath);
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const timesItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
+
+  for (const sig of signatures) {
+    const pageIndex = sig.page - 1;
+    if (pageIndex < 0 || pageIndex >= pages.length) {
+      console.warn(`Signature page index ${sig.page} is out of bounds for PDF`);
+      continue;
+    }
+
+    const page = pages[pageIndex];
+    const { width: pageWidth, height: pageHeight } = page.getSize();
+
+    // Convert percentages to absolute PDF coordinates (1 in = 72 pt)
+    const x = (sig.x / 100) * pageWidth;
+    const y = (1 - (sig.y + sig.height) / 100) * pageHeight;
+    const width = (sig.width / 100) * pageWidth;
+    const height = (sig.height / 100) * pageHeight;
+
+    if (sig.type === 'signature') {
+      if (sig.value && sig.value.startsWith('data:image/')) {
+        try {
+          const base64Data = sig.value.replace(/^data:image\/\w+;base64,/, '');
+          const imageBytes = Buffer.from(base64Data, 'base64');
+          const pngImage = await pdfDoc.embedPng(imageBytes);
+          
+          page.drawImage(pngImage, {
+            x,
+            y: y + height * 0.1,
+            width,
+            height: height * 0.8,
+          });
+        } catch (err) {
+          console.error('Error embedding signature PNG image:', err);
+        }
+      } else if (sig.value) {
+        const fontSize = Math.min(width / sig.value.length * 1.5, height * 0.6, 24);
+        page.drawText(sig.value, {
+          x: x + 5,
+          y: y + height * 0.3,
+          size: fontSize,
+          font: timesItalic,
+          color: rgb(0.12, 0.23, 0.54),
+        });
+      }
+    } else if (sig.type === 'name' && sig.value) {
+      const fontSize = Math.min(width / sig.value.length * 1.6, height * 0.5, 14);
+      page.drawText(sig.value, {
+        x: x + 5,
+        y: y + height * 0.35,
+        size: fontSize,
+        font: helveticaBold,
+        color: rgb(0.1, 0.1, 0.1),
+      });
+    } else if (sig.type === 'date' && sig.value) {
+      const fontSize = Math.min(width / sig.value.length * 1.6, height * 0.5, 12);
+      page.drawText(sig.value, {
+        x: x + 5,
+        y: y + height * 0.35,
+        size: fontSize,
+        font: helveticaFont,
+        color: rgb(0.1, 0.1, 0.1),
+      });
+    }
+
+    const hashText = sig.signatureHash || 'SF-VERIFIED';
+    page.drawText(`Verified: ${hashText}`, {
+      x: x + 5,
+      y: y + 2,
+      size: 5.5,
+      font: helveticaFont,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+  }
+
+  const signedFileName = `signed-${document.fileName}`;
+  const signedPath = path.join(__dirname, '../uploads', signedFileName);
+  
+  const signedPdfBytes = await pdfDoc.save();
+  fs.writeFileSync(signedPath, signedPdfBytes);
+
+  document.fileName = signedFileName;
+  document.fileUrl = `/uploads/${signedFileName}`;
+  document.status = 'Signed';
+  await document.save();
+}
+
+// PUT /api/docs/:id/status
+app.put('/api/docs/:id/status', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { status } = req.body;
+    if (!['Draft', 'Pending', 'Signed', 'Rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const doc = await DocumentModel.findById(req.params.id);
+    if (!doc) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    if (doc.ownerId.toString() !== req.user.userId && !doc.shareToken) {
+      return res.status(403).json({ error: 'Unauthorized to update document status' });
+    }
+
+    doc.status = status;
+    if (status === 'Signed') {
+      await signPdfDocument(doc._id.toString());
+    } else {
+      await doc.save();
+    }
+
+    await logAuditEvent(doc._id.toString(), req.user.userId, req.user.name, `Document status updated to ${status}`, req);
+
+    res.json({ success: true, status: doc.status });
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({ error: 'Failed to update document status' });
+  }
+});
+
 // GET /api/audit
-app.get('/api/audit', authenticate, async (req: any, res) => {
+app.get('/api/audit', authenticate, async (req: Request, res: Response) => {
   try {
     const userDocs = await DocumentModel.find({ ownerId: req.user.userId }).select('_id originalName');
     const docIds = userDocs.map((doc) => doc._id);
@@ -664,7 +839,7 @@ app.get('/api/audit', authenticate, async (req: any, res) => {
 });
 
 // GET /api/audit/:documentId
-app.get('/api/audit/:documentId', authenticate, async (req: any, res) => {
+app.get('/api/audit/:documentId', authenticate, async (req: Request, res: Response) => {
   try {
     const documentId = req.params.documentId;
     const document = await DocumentModel.findById(documentId);
