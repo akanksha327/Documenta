@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 
+const apiBaseUrl = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:3001"
+).replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   output: "standalone",
   typescript: {
@@ -10,11 +16,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3001/api/:path*',
+        destination: `${apiBaseUrl}/api/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:3001/uploads/:path*',
+        destination: `${apiBaseUrl}/uploads/:path*`,
       },
     ];
   },

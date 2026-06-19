@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { FileUp, FileText, Loader2, CheckCircle2, AlertCircle, RefreshCw, UploadCloud } from 'lucide-react';
+import { FileText, Loader2, CheckCircle2, AlertCircle, RefreshCw, UploadCloud } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { isAllowedUploadType, maxUploadSizeBytes, uploadConfig } from '@/lib/upload-config';
 
 interface UploadZoneProps {
   onUpload: (file: File) => Promise<boolean>;
@@ -26,14 +27,14 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
   };
 
   const validateAndUpload = async (uploadedFile: File) => {
-    if (uploadedFile.type !== 'application/pdf') {
-      setErrorMessage('Only PDF documents are allowed.');
+    if (!isAllowedUploadType(uploadedFile)) {
+      setErrorMessage(`Only ${uploadConfig.allowedExtensions.join(', ')} documents are allowed.`);
       setUploadState('error');
       return;
     }
 
-    if (uploadedFile.size > 10 * 1024 * 1024) {
-      setErrorMessage('File size exceeds the 10MB limit.');
+    if (uploadedFile.size > maxUploadSizeBytes) {
+      setErrorMessage(`File size exceeds the ${uploadConfig.maxSizeMb}MB limit.`);
       setUploadState('error');
       return;
     }
@@ -124,7 +125,7 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf"
+            accept={uploadConfig.allowedExtensions.join(',')}
             onChange={handleFileChange}
             className="hidden"
           />
@@ -135,10 +136,10 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
             Drag and drop your PDF here
           </p>
           <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-4">
-            or click to browse your local files. Support files up to 10MB in size.
+            or click to browse your local files. Supports files up to {uploadConfig.maxSizeMb}MB in size.
           </p>
           <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-            PDFs Only
+            {uploadConfig.allowedExtensions.join(', ').toUpperCase()} Only
           </span>
         </div>
       )}

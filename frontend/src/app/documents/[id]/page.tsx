@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getApiAssetUrl } from '@/lib/api-url';
 
 export default function DocumentDetailPage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function DocumentDetailPage() {
   const { fields, fetchFields } = useSignatureStore();
   const { toast } = useToast();
   const shareDocument = useDocumentStore((s) => s.shareDocument);
+  const documentFileUrl = activeDocument ? getApiAssetUrl(activeDocument.fileUrl) : '';
 
   const handleShare = async () => {
     const shareToken = await shareDocument(id);
@@ -202,14 +204,14 @@ export default function DocumentDetailPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => window.open(`http://localhost:3001${activeDocument.fileUrl}`, '_blank')}
+                    onClick={() => window.open(documentFileUrl, '_blank')}
                     className="h-8 gap-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>Open PDF</span>
                   </Button>
                   <a
-                    href={`http://localhost:3001${activeDocument.fileUrl}`}
+                    href={documentFileUrl}
                     download={activeDocument.originalName}
                     className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
                   >
