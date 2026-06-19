@@ -47,6 +47,7 @@
   --radius: 1.25rem;
   --background: #FFF9FC;
   --foreground: #18181B;
+  --surface: #FFFFFF;
   --card: #FFFFFF;
   --card-foreground: #18181B;
   --popover: #FFFFFF;
@@ -72,8 +73,40 @@
   --sidebar-accent: #FCE7F3;
   --sidebar-accent-foreground: #D94687;
   --sidebar-border: #F1F1F3;
+}
+
+.dark {
+  --background: #0F1117;
+  --foreground: #F8FAFC;
+  --surface: #181C24;
+  --card: #1E2430;
+  --card-foreground: #F8FAFC;
+  --popover: #181C24;
+  --popover-foreground: #F8FAFC;
+  --primary: #E85D9E;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2A3441;
+  --secondary-foreground: #F8FAFC;
+  --muted: #181C24;
+  --muted-foreground: #94A3B8;
+  --accent: #A855F7;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --border: #2A3441;
+  --input: #2A3441;
+  --ring: #E85D9E;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --sidebar: #181C24;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #E85D9E;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2A3441;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: #2A3441;
   --sidebar-ring: #E85D9E;
 }
+
 
 @layer base {
   * {
@@ -81,5 +114,16 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  body,
+  [data-slot="card"],
+  input,
+  textarea,
+  button,
+  nav,
+  header {
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-duration: 220ms;
+    transition-timing-function: ease;
   }
 }

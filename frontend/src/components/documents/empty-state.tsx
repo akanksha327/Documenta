@@ -16,7 +16,7 @@ export function EmptyState({
   actionText = 'Upload Your First Document',
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-white py-14 px-6 text-center shadow-sm">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-14 px-6 text-center shadow-sm">
       {/* Icon/Illustration Area */}
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary mb-4">
         <FolderPlus className="h-6 w-6" />

@@ -11,6 +11,10 @@ export interface SignatureField {
   width: number; // 0-100 percentage
   height: number; // 0-100 percentage
   type: 'signature' | 'name' | 'date';
+  value?: string;
+  fontFamily?: string;
+  isSigned?: boolean;
+  signatureHash?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -25,12 +29,14 @@ interface SignatureState {
   currentPage: number;
   totalPages: number;
   activityLog: string[];
+  mode: 'design' | 'sign';
 
   // Actions
   setCurrentPage: (page: number) => void;
   setTotalPages: (total: number) => void;
   setZoom: (zoom: number) => void;
   setSelectedFieldId: (id: string | null) => void;
+  setMode: (mode: 'design' | 'sign') => void;
   logActivity: (message: string) => void;
   
   // API actions
@@ -39,7 +45,9 @@ interface SignatureState {
   updateFieldPosition: (id: string, x: number, y: number) => void;
   updateFieldDimensions: (id: string, width: number, height: number) => void;
   deleteField: (id: string) => void;
+  signField: (id: string, value: string, fontFamily?: string, signatureHash?: string) => void;
   saveFields: (documentId: string) => Promise<boolean>;
+  completeDocumentSigning: (documentId: string) => Promise<boolean>;
 }
 
 export const useSignatureStore = create<SignatureState>((set, get) => ({
@@ -52,11 +60,16 @@ export const useSignatureStore = create<SignatureState>((set, get) => ({
   currentPage: 1,
   totalPages: 1,
   activityLog: ['Editor initialized'],
+  mode: 'design',
 
   setCurrentPage: (currentPage) => set({ currentPage }),
   setTotalPages: (totalPages) => set({ totalPages }),
   setZoom: (zoom) => set({ zoom }),
   setSelectedFieldId: (selectedFieldId) => set({ selectedFieldId }),
+  setMode: (mode) => {
+    set({ mode });
+    get().logActivity(`Switched to ${mode} mode`);
+  },
   
   logActivity: (message) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -116,6 +129,10 @@ export const useSignatureStore = create<SignatureState>((set, get) => ({
       width,
       height,
       type,
+      value: '',
+      fontFamily: '',
+      isSigned: false,
+      signatureHash: '',
     };
 
     set((state) => ({
@@ -166,6 +183,27 @@ export const useSignatureStore = create<SignatureState>((set, get) => ({
     get().logActivity(`Removed ${field.type} placeholder from page ${field.page}`);
   },
 
+  signField: (id, value, fontFamily = '', signatureHash = '') => {
+    const field = get().fields.find((f) => f.id === id);
+    if (!field) return;
+
+    set((state) => ({
+      fields: state.fields.map((f) =>
+        f.id === id
+          ? {
+              ...f,
+              value,
+              fontFamily,
+              isSigned: true,
+              signatureHash,
+            }
+          : f
+      ),
+    }));
+
+    get().logActivity(`Signed ${field.type} field (${field.id.startsWith('temp-') ? 'unsaved' : field.id})`);
+  },
+
   saveFields: async (documentId) => {
     const token = useAuthStore.getState().token;
     if (!token) return false;
@@ -181,6 +219,10 @@ export const useSignatureStore = create<SignatureState>((set, get) => ({
         width: f.width,
         height: f.height,
         type: f.type,
+        value: f.value || '',
+        fontFamily: f.fontFamily || '',
+        isSigned: !!f.isSigned,
+        signatureHash: f.signatureHash || '',
       }));
 
       const res = await fetch('/api/signatures/bulk', {
@@ -207,6 +249,46 @@ export const useSignatureStore = create<SignatureState>((set, get) => ({
     } catch (err: any) {
       set({ error: err.message || 'Error saving layout', isSaving: false });
       get().logActivity(`Failed to save layout: ${err.message}`);
+      return false;
+    }
+  },
+
+  completeDocumentSigning: async (documentId) => {
+    const token = useAuthStore.getState().token;
+    if (!token) return false;
+
+    set({ isSaving: true, error: null });
+    get().logActivity('Completing document signing...');
+
+    try {
+      // First save the signatures
+      const saveSuccess = await get().saveFields(documentId);
+      if (!saveSuccess) {
+        throw new Error('Could not save signature entries before completing');
+      }
+
+      // Then update document status to "Signed"
+      const res = await fetch(`/api/docs/${documentId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: 'Signed',
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update document signing status');
+      }
+
+      set({ isSaving: false });
+      get().logActivity('Document has been successfully signed and certified!');
+      return true;
+    } catch (err: any) {
+      set({ error: err.message || 'Error completing document', isSaving: false });
+      get().logActivity(`Failed to complete signing: ${err.message}`);
       return false;
     }
   },

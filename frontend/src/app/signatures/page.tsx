@@ -29,7 +29,7 @@ export default function SignaturesListPage() {
 
   if (!token) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#FFF9FC]">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
@@ -50,7 +50,7 @@ export default function SignaturesListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF9FC] pb-16">
+    <div className="min-h-screen bg-background pb-16">
       <Navbar />
 
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
@@ -66,7 +66,7 @@ export default function SignaturesListPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 max-w-lg">
-          <Card className="border border-[#F1F1F3] bg-white p-4 shadow-xs rounded-2xl flex items-center gap-3">
+          <Card className="border border-border bg-card p-4 shadow-xs rounded-2xl flex items-center gap-3">
             <div className="h-9 w-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500">
               <Clock className="h-4.5 w-4.5" />
             </div>
@@ -75,7 +75,7 @@ export default function SignaturesListPage() {
               <p className="text-xl font-bold text-foreground mt-0.5">{pendingDocs.length}</p>
             </div>
           </Card>
-          <Card className="border border-[#F1F1F3] bg-white p-4 shadow-xs rounded-2xl flex items-center gap-3">
+          <Card className="border border-border bg-card p-4 shadow-xs rounded-2xl flex items-center gap-3">
             <div className="h-9 w-9 rounded-xl bg-green-50 border border-green-100 flex items-center justify-center text-green-500">
               <CheckCircle2 className="h-4.5 w-4.5" />
             </div>
@@ -91,7 +91,7 @@ export default function SignaturesListPage() {
           <button
             onClick={() => setActiveTab('pending')}
             className={`relative pb-3 text-xs font-semibold px-2 focus:outline-none transition-colors ${
-              activeTab === 'pending' ? 'text-[#D94687] border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
+              activeTab === 'pending' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <span>Action Required ({pendingDocs.length})</span>
@@ -99,7 +99,7 @@ export default function SignaturesListPage() {
           <button
             onClick={() => setActiveTab('signed')}
             className={`relative pb-3 text-xs font-semibold px-2 focus:outline-none transition-colors ${
-              activeTab === 'signed' ? 'text-[#D94687] border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
+              activeTab === 'signed' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <span>Completed Documents ({signedDocs.length})</span>
@@ -113,8 +113,8 @@ export default function SignaturesListPage() {
             <span className="text-xs text-muted-foreground">Loading workflows...</span>
           </div>
         ) : activeDocsList.length === 0 ? (
-          <Card className="border border-[#F1F1F3] bg-white p-12 text-center max-w-md mx-auto rounded-[2rem] space-y-3">
-            <div className="h-10 w-10 mx-auto flex items-center justify-center rounded-full bg-[#FCE7F3] text-primary">
+          <Card className="border border-border bg-card p-12 text-center max-w-md mx-auto rounded-[2rem] space-y-3">
+            <div className="h-10 w-10 mx-auto flex items-center justify-center rounded-full bg-secondary text-primary">
               <FileSignature className="h-4.5 w-4.5" />
             </div>
             <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">No workflows found</h3>
@@ -129,7 +129,7 @@ export default function SignaturesListPage() {
             {activeDocsList.map((doc) => (
               <Card
                 key={doc.id}
-                className="border border-[#F1F1F3] bg-white p-4.5 shadow-xs rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-sm hover:translate-y-[-1px] transition-all duration-200"
+                className="border border-border bg-card p-4.5 shadow-xs rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-sm hover:translate-y-[-1px] transition-all duration-200"
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-secondary border border-border/80 flex items-center justify-center text-primary">

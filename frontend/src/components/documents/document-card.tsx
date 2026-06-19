@@ -42,7 +42,7 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
   };
 
   return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-sm space-y-4 hover:shadow-md transition-shadow">
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-4 hover:shadow-md transition-shadow">
       {/* Header: Icon + Title */}
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary border border-border">
@@ -77,14 +77,14 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
       <div className="flex items-center gap-2 pt-1">
         <button
           onClick={() => handleShare(document.id)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground hover:bg-secondary hover:text-primary transition-all active:scale-95"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-primary transition-all active:scale-95"
           title="Share Signing Link"
         >
           <Share2 className="h-4 w-4" />
         </button>
         <Link
           href={`/documents/${document.id}`}
-          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-95"
+          className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-95"
         >
           <Eye className="h-3.5 w-3.5" />
           <span>View details</span>
@@ -95,7 +95,7 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
               onDelete(document.id);
             }
           }}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-95"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-95"
           title="Delete Document"
         >
           <Trash2 className="h-4 w-4" />

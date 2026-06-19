@@ -67,14 +67,14 @@ export default function ActivityPage() {
 
   if (!token) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#FFF9FC]">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF9FC] pb-16">
+    <div className="min-h-screen bg-background pb-16">
       <Navbar />
 
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
@@ -93,7 +93,7 @@ export default function ActivityPage() {
             <span className="text-xs text-muted-foreground">Loading audit log stream...</span>
           </div>
         ) : error ? (
-          <Card className="border border-[#F1F1F3] bg-white p-12 text-center max-w-md mx-auto rounded-[2rem] space-y-3">
+          <Card className="border border-border bg-card p-12 text-center max-w-md mx-auto rounded-[2rem] space-y-3">
             <div className="h-10 w-10 mx-auto flex items-center justify-center rounded-full bg-red-50 text-red-600">
               <ShieldAlert className="h-5 w-5" />
             </div>
@@ -101,8 +101,8 @@ export default function ActivityPage() {
             <p className="text-xs text-muted-foreground">{error}</p>
           </Card>
         ) : logs.length === 0 ? (
-          <Card className="border border-[#F1F1F3] bg-white p-16 text-center max-w-lg mx-auto rounded-[2rem] space-y-4">
-            <div className="h-12 w-12 mx-auto flex items-center justify-center rounded-full bg-[#FCE7F3] text-primary">
+          <Card className="border border-border bg-card p-16 text-center max-w-lg mx-auto rounded-[2rem] space-y-4">
+            <div className="h-12 w-12 mx-auto flex items-center justify-center rounded-full bg-secondary text-primary">
               <Activity className="h-5 w-5" />
             </div>
             <div>
@@ -115,12 +115,12 @@ export default function ActivityPage() {
         ) : (
           <div className="space-y-4">
             {/* Live activity logs list */}
-            <Card className="border border-[#F1F1F3] bg-white p-6 shadow-xs rounded-[2rem]">
+            <Card className="border border-border bg-card p-6 shadow-xs rounded-[2rem]">
               <div className="divide-y divide-[#F1F1F3] text-xs">
                 {logs.map((log) => (
                   <div key={log.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-start justify-between gap-3 group">
                     <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[#FCE7F3]/40 border border-[#FCE7F3] flex items-center justify-center text-primary shrink-0 group-hover:bg-[#FCE7F3] transition-colors">
+                      <div className="h-8 w-8 rounded-lg bg-secondary/40 border border-[#FCE7F3] flex items-center justify-center text-primary shrink-0 group-hover:bg-secondary transition-colors">
                         <Activity className="h-4 w-4" />
                       </div>
                       <div className="space-y-1">
@@ -144,7 +144,7 @@ export default function ActivityPage() {
                         <Monitor className="h-3 w-3" />
                         <span>{getFriendlyDevice(log.device)}</span>
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#FCE7F3]/30 px-2 py-0.5 text-[#D94687] font-mono border border-primary/5">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-secondary/30 px-2 py-0.5 text-primary font-mono border border-primary/5">
                         <Terminal className="h-3 w-3" />
                         <span>{log.ipAddress || 'unknown'}</span>
                       </span>

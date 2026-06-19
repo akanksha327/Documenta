@@ -7,7 +7,7 @@ export function ActivityTimeline() {
   const activityLog = useSignatureStore((s) => s.activityLog);
 
   return (
-    <Card className="border border-border bg-white p-5 shadow-sm space-y-4 rounded-2xl flex flex-col h-full max-h-[300px]">
+    <Card className="border border-border bg-card p-5 shadow-sm space-y-4 rounded-2xl flex flex-col h-full max-h-[300px]">
       <div className="flex items-center gap-2 border-b border-border pb-3">
         <Activity className="h-4 w-4 text-primary" />
         <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">

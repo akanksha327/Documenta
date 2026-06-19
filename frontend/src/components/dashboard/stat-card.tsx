@@ -11,7 +11,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon, accent }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-border bg-white p-5 transition-shadow duration-150 hover:shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-150 hover:shadow-sm">
       <div className="flex items-center gap-3">
         <div
           className={`flex h-9 w-9 items-center justify-center rounded-lg ${accent || 'bg-muted'}`}

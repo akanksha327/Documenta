@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileSignature, User, Mail, Lock, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Loader2 } from 'lucide-react';
 
 export function RegisterForm() {
   const { setUser, setView, setStats, setRecentDocuments, setLoading, isLoading, error, setError } =
@@ -86,13 +86,15 @@ export function RegisterForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 selection:bg-secondary">
-      <Card className="w-full max-w-[450px] rounded-[2rem] border border-border/80 bg-white p-2 shadow-lg shadow-primary/5 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
+      <Card className="w-full max-w-[450px] rounded-[2rem] border border-border/80 bg-card p-2 shadow-lg shadow-primary/5 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
         <CardContent className="p-8 sm:p-10">
           {/* Logo */}
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-[#D94687] shadow-md shadow-primary/20">
-              <FileSignature className="h-5.5 w-5.5 text-white" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="SignFlow Logo" 
+              className="h-20 w-20 rounded-full object-contain bg-background p-1.5 border border-border/50 shadow-lg shadow-primary/10"
+            />
             <h1 className="mt-4 text-2xl font-semibold text-foreground tracking-tight">
               Get started
             </h1>
@@ -115,7 +117,7 @@ export function RegisterForm() {
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-11 pl-9 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
+                  className="h-11 pl-9 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
                   autoComplete="name"
                 />
               </div>
@@ -133,7 +135,7 @@ export function RegisterForm() {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 pl-9 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
+                  className="h-11 pl-9 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
                   autoComplete="email"
                 />
               </div>
@@ -151,7 +153,7 @@ export function RegisterForm() {
                   placeholder="Min 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pl-9 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
+                  className="h-11 pl-9 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
                   autoComplete="new-password"
                 />
               </div>
@@ -169,7 +171,7 @@ export function RegisterForm() {
                   placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="h-11 pl-9 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
+                  className="h-11 pl-9 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary focus-visible:ring-offset-0"
                   autoComplete="new-password"
                 />
               </div>
@@ -201,7 +203,7 @@ export function RegisterForm() {
             <button
               type="button"
               onClick={() => setView('login')}
-              className="font-semibold text-primary hover:underline hover:text-[#D94687] transition-colors"
+              className="font-semibold text-primary hover:underline hover:text-primary transition-colors"
             >
               Sign in
             </button>

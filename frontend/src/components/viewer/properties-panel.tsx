@@ -11,7 +11,7 @@ export function PropertiesPanel() {
 
   if (!selectedField) {
     return (
-      <Card className="border border-border bg-white p-5 shadow-sm rounded-2xl flex flex-col justify-center items-center text-center min-h-[160px]">
+      <Card className="border border-border bg-card p-5 shadow-sm rounded-2xl flex flex-col justify-center items-center text-center min-h-[160px]">
         <Settings2 className="h-6 w-6 text-muted-foreground/60 mb-2 stroke-[1.5]" />
         <p className="text-xs font-semibold text-foreground">No Element Selected</p>
         <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">
@@ -38,7 +38,7 @@ export function PropertiesPanel() {
   };
 
   return (
-    <Card className="border border-border bg-white p-5 shadow-sm rounded-2xl space-y-4">
+    <Card className="border border-border bg-card p-5 shadow-sm rounded-2xl space-y-4">
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-primary" />

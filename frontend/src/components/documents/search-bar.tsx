@@ -17,7 +17,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search documents...'
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-9 pr-9 rounded-lg border border-border bg-white text-sm text-foreground focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary"
+        className="w-full pl-9 pr-9 rounded-lg border border-border bg-card text-sm text-foreground focus-visible:ring-primary focus-visible:ring-1 focus-visible:border-primary"
       />
       {value && (
         <button

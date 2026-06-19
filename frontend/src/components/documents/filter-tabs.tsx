@@ -10,7 +10,7 @@ const tabs = ['All', 'Draft', 'Pending', 'Signed', 'Rejected'];
 
 export function FilterTabs({ activeTab, onChange }: FilterTabsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-white p-1 shadow-sm">
+    <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm">
       {tabs.map((tab) => {
         const isActive = activeTab === tab;
         return (

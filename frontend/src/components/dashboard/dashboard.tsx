@@ -99,7 +99,7 @@ export function Dashboard() {
 
             {/* Compact Statistics Badges Row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <Card className="rounded-[1.5rem] border border-border/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <Card className="rounded-[1.5rem] border border-border/80 bg-card p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-primary">
                     <FileSignature className="h-4 w-4" />
@@ -111,7 +111,7 @@ export function Dashboard() {
                 </div>
               </Card>
 
-              <Card className="rounded-[1.5rem] border border-border/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <Card className="rounded-[1.5rem] border border-border/80 bg-card p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-500">
                     <Clock className="h-4 w-4" />
@@ -123,7 +123,7 @@ export function Dashboard() {
                 </div>
               </Card>
 
-              <Card className="rounded-[1.5rem] border border-border/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <Card className="rounded-[1.5rem] border border-border/80 bg-card p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-500">
                     <CheckCircle2 className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function Dashboard() {
                 </div>
               </Card>
 
-              <Card className="rounded-[1.5rem] border border-border/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <Card className="rounded-[1.5rem] border border-border/80 bg-card p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-[#A855F7]">
                     <TrendingUp className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function Dashboard() {
           {/* Right Sidebar Section (Span 1 Column) */}
           <div className="space-y-6">
             {/* Quick Actions Panel */}
-            <Card className="rounded-[2rem] border border-border/80 bg-white p-6 shadow-sm">
+            <Card className="rounded-[2rem] border border-border/80 bg-card p-6 shadow-sm">
               <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">
                 Quick Actions
               </h2>
@@ -178,7 +178,7 @@ export function Dashboard() {
                   <Link
                     key={idx}
                     href={action.href}
-                    className="group flex items-start gap-3 rounded-2xl border border-border/60 bg-white p-3.5 transition-all duration-200 hover:border-primary/20 hover:shadow-sm active:scale-[0.99]"
+                    className="group flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-3.5 transition-all duration-200 hover:border-primary/20 hover:shadow-sm active:scale-[0.99]"
                   >
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${action.color} transition-colors group-hover:brightness-[0.98]`}>
                       <action.icon className="h-4 w-4" />
@@ -197,7 +197,7 @@ export function Dashboard() {
             </Card>
 
             {/* Activity Feed / Audit Trail */}
-            <Card className="rounded-[2rem] border border-border/80 bg-white p-6 shadow-sm">
+            <Card className="rounded-[2rem] border border-border/80 bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                   Activity Feed
@@ -218,7 +218,7 @@ export function Dashboard() {
                 ) : (
                   activities.map((act) => (
                     <div key={act.id} className="flex gap-3 text-xs items-start">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#FCE7F3]/40 border border-[#FCE7F3]/80 text-[#D94687]">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary/40 border border-[#FCE7F3]/80 text-primary">
                         <History className="h-3.5 w-3.5" />
                       </div>
                       <div className="flex-1 min-w-0">

@@ -49,7 +49,7 @@ export default function DocumentViewerPage() {
 
   if (!token) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#FFF9FC]">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
@@ -57,7 +57,7 @@ export default function DocumentViewerPage() {
 
   if ((isDocLoading || isSigLoading) && !activeDocument) {
     return (
-      <div className="flex flex-col h-screen w-screen items-center justify-center bg-[#FFF9FC] gap-2">
+      <div className="flex flex-col h-screen w-screen items-center justify-center bg-background gap-2">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
         <span className="text-xs text-muted-foreground">Opening workspace...</span>
       </div>
@@ -66,7 +66,7 @@ export default function DocumentViewerPage() {
 
   if (!activeDocument) {
     return (
-      <div className="flex flex-col h-screen w-screen items-center justify-center bg-[#FFF9FC] gap-4 text-center p-6">
+      <div className="flex flex-col h-screen w-screen items-center justify-center bg-background gap-4 text-center p-6">
         <h2 className="text-lg font-bold text-foreground">Document Not Found</h2>
         <p className="text-xs text-muted-foreground max-w-xs">
           This document could not be loaded. Please return to your documents dashboard.
@@ -79,15 +79,15 @@ export default function DocumentViewerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF9FC] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Designer Capsule Header (Floating style top-center capsule) */}
       <header className="w-full max-w-6xl mx-auto px-4 pt-4 sm:px-6">
-        <div className="bg-white/85 border border-[#F1F1F3] rounded-[1.5rem] px-5 py-3 shadow-xs backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="bg-card/85 border border-border rounded-[1.5rem] px-5 py-3 shadow-xs backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Back button and details */}
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Link
               href={`/documents/${id}`}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#F1F1F3] bg-white text-muted-foreground hover:bg-[#FCE7F3] hover:text-[#D94687] transition-all active:scale-95 group shrink-0"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-primary transition-all active:scale-95 group shrink-0"
               title="Back to Details"
             >
               <ArrowLeft className="h-4.5 w-4.5 transition-transform group-hover:-translate-x-0.5" />
@@ -121,7 +121,7 @@ export default function DocumentViewerPage() {
           <SignatureToolbar documentId={id} />
 
           {/* Render PDF Canvas */}
-          <div className="flex-1 relative border border-[#F1F1F3] bg-white rounded-3xl overflow-hidden shadow-xs min-h-[540px]">
+          <div className="flex-1 relative border border-border bg-card rounded-3xl overflow-hidden shadow-xs min-h-[540px]">
             <PDFViewer fileUrl={activeDocument.fileUrl} />
           </div>
         </div>

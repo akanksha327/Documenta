@@ -115,7 +115,7 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
           onDragLeave={handleDrag}
           onDrop={handleDrop}
           onClick={triggerFileInput}
-          className={`flex flex-col items-center justify-center rounded-3xl p-10 text-center cursor-pointer transition-all duration-300 border border-border bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
+          className={`flex flex-col items-center justify-center rounded-3xl p-10 text-center cursor-pointer transition-all duration-300 border border-border bg-card shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
             isDragActive
               ? 'border-primary ring-2 ring-primary/20 scale-[1.01]'
               : 'border-border/60 hover:border-primary/20'
@@ -144,7 +144,7 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
       )}
 
       {uploadState === 'uploading' && file && (
-        <div className="border border-border/80 rounded-3xl p-6 bg-white shadow-sm space-y-4">
+        <div className="border border-border/80 rounded-3xl p-6 bg-card shadow-sm space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary border border-border/40">
               <FileText className="h-5.5 w-5.5" />
@@ -170,7 +170,7 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
       )}
 
       {uploadState === 'success' && file && (
-        <div className="border border-border/80 rounded-3xl p-6 bg-white shadow-sm flex flex-col items-center text-center space-y-3">
+        <div className="border border-border/80 rounded-3xl p-6 bg-card shadow-sm flex flex-col items-center text-center space-y-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-600 border border-green-200">
             <CheckCircle2 className="h-6 w-6" />
           </div>
@@ -186,7 +186,7 @@ export function UploadZone({ onUpload, onClose }: UploadZoneProps) {
       )}
 
       {uploadState === 'error' && (
-        <div className="border border-border/80 rounded-3xl p-6 bg-white shadow-sm flex flex-col items-center text-center space-y-4">
+        <div className="border border-border/80 rounded-3xl p-6 bg-card shadow-sm flex flex-col items-center text-center space-y-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-200">
             <AlertCircle className="h-6 w-6" />
           </div>

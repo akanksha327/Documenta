@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { useDocumentStore } from '@/store/document-store';
+import { useSignatureStore } from '@/store/signature-store';
 import { Navbar } from '@/components/dashboard/navbar';
 import { StatusBadge } from '@/components/documents/status-badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ import {
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function DocumentDetailPage() {
   const router = useRouter();
@@ -31,6 +33,7 @@ export default function DocumentDetailPage() {
   const id = params.id as string;
   const token = useAuthStore((s) => s.token);
   const { activeDocument, isLoading, error, fetchDocumentById } = useDocumentStore();
+  const { fields, fetchFields } = useSignatureStore();
   const { toast } = useToast();
   const shareDocument = useDocumentStore((s) => s.shareDocument);
 
@@ -60,6 +63,7 @@ export default function DocumentDetailPage() {
       router.push('/');
     } else if (id) {
       fetchDocumentById(id);
+      fetchFields(id);
     }
   }, [token, id, router]);
 
@@ -105,7 +109,7 @@ export default function DocumentDetailPage() {
 
   if (!token) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#FFF9FC]">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
@@ -113,7 +117,7 @@ export default function DocumentDetailPage() {
 
   if (isLoading && !activeDocument) {
     return (
-      <div className="min-h-screen bg-[#FFF9FC]">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="flex flex-col items-center justify-center py-40 gap-2">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -125,7 +129,7 @@ export default function DocumentDetailPage() {
 
   if (error || !activeDocument) {
     return (
-      <div className="min-h-screen bg-[#FFF9FC]">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <main className="mx-auto max-w-xl px-4 py-20 text-center space-y-4">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-100">
@@ -139,7 +143,7 @@ export default function DocumentDetailPage() {
           </p>
           <Link
             href="/documents"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#F1F1F3] bg-white px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-[#FCE7F3] hover:text-[#D94687] transition-all"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-secondary hover:text-primary transition-all"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Documents
@@ -150,7 +154,7 @@ export default function DocumentDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF9FC] pb-12">
+    <div className="min-h-screen bg-background pb-12">
       <Navbar />
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 space-y-6">
@@ -169,9 +173,9 @@ export default function DocumentDetailPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left Column: Preview Canvas (takes 2/3 cols on desktop) */}
           <div className="lg:col-span-2 space-y-4">
-            <Card className="flex flex-col border border-[#F1F1F3] bg-white shadow-xs overflow-hidden h-[540px] rounded-3xl">
+            <Card className="flex flex-col border border-border bg-card shadow-xs overflow-hidden h-[540px] rounded-3xl">
               {/* Toolbar */}
-              <div className="flex items-center justify-between border-b border-[#F1F1F3] bg-[#FCE7F3]/10 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border bg-secondary/10 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4.5 w-4.5 text-primary" />
                   <span className="text-xs font-semibold text-foreground truncate max-w-[180px] sm:max-w-xs">
@@ -207,7 +211,7 @@ export default function DocumentDetailPage() {
                   <a
                     href={`http://localhost:3001${activeDocument.fileUrl}`}
                     download={activeDocument.originalName}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-[#F1F1F3] bg-white px-3 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Download</span>
@@ -217,7 +221,7 @@ export default function DocumentDetailPage() {
 
               {/* PDF Preview Canvas Mock */}
               <div className="flex-1 bg-muted/30 p-8 overflow-y-auto flex justify-center items-start">
-                <Card className="w-full max-w-[480px] border border-border bg-white shadow-md p-10 space-y-6 aspect-[1/1.414] min-h-[460px]">
+                <Card className="w-full max-w-[480px] border border-border bg-card shadow-md p-10 space-y-6 aspect-[1/1.414] min-h-[460px] relative">
                   {/* Document Title Header */}
                   <div className="border-b border-border/80 pb-4">
                     <div className="h-2.5 w-20 bg-muted rounded mb-2" />
@@ -257,6 +261,68 @@ export default function DocumentDetailPage() {
                       <span className="text-[10px] text-muted-foreground uppercase">Date</span>
                     </div>
                   </div>
+
+                  {/* Overlay actual placed signature fields */}
+                  {fields.map((field) => {
+                    const fontStyles: Record<string, string> = {
+                      'Great Vibes': 'font-[var(--font-great-vibes)]',
+                      'Alex Brush': 'font-[var(--font-alex-brush)]',
+                      'Sacramento': 'font-[var(--font-sacramento)]',
+                      'Playball': 'font-[var(--font-playball)]',
+                      'Herr Von Muellerhoff': 'font-[var(--font-herr-von-muellerhoff)]',
+                      'Default': 'font-semibold',
+                    };
+                    const fontStyleClass = fontStyles[field.fontFamily || 'Great Vibes'] || 'font-serif italic';
+                    return (
+                      <div
+                        key={field.id}
+                        style={{
+                          position: 'absolute',
+                          left: `${field.x}%`,
+                          top: `${field.y}%`,
+                          width: `${field.width}%`,
+                          height: `${field.height}%`,
+                        }}
+                        className={cn(
+                          "rounded-xl border flex flex-col p-1.5 justify-center items-center text-center text-[7px] select-none pointer-events-none transition-all",
+                          field.isSigned
+                            ? "bg-transparent border-transparent"
+                            : field.type === 'signature'
+                            ? "bg-[#E85D9E]/5 border-[#E85D9E]/30 text-[#E85D9E]"
+                            : field.type === 'name'
+                            ? "bg-[#A855F7]/5 border-[#A855F7]/30 text-[#A855F7]"
+                            : "bg-purple-500/5 border-purple-500/30 text-purple-500"
+                        )}
+                      >
+                        {field.isSigned ? (
+                          field.type === 'signature' ? (
+                            field.value?.startsWith('data:image/') ? (
+                              <img src={field.value} className="max-h-full object-contain pointer-events-none select-none" alt="Signature" />
+                            ) : (
+                              <span className={cn("text-xs text-[#1e3a8a] truncate w-full select-none leading-none", fontStyleClass)}>
+                                {field.value}
+                              </span>
+                            )
+                          ) : field.type === 'name' ? (
+                            <span className={cn("text-[9px] text-foreground font-bold truncate w-full select-none leading-none", field.fontFamily === 'Default' ? 'font-sans' : fontStyleClass)}>
+                              {field.value}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-semibold text-foreground font-mono select-none leading-none">
+                              {field.value}
+                            </span>
+                          )
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-0.5">
+                            <span className="font-bold uppercase tracking-wider text-[6px]">
+                              {field.type}
+                            </span>
+                            <span className="text-[5px] text-muted-foreground/60">(Pending)</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </Card>
               </div>
             </Card>
@@ -265,7 +331,7 @@ export default function DocumentDetailPage() {
           {/* Right Column: Metadata & Activity Panels */}
           <div className="space-y-6">
             {/* Metadata Card */}
-            <Card className="border border-border bg-white p-5 shadow-sm space-y-4">
+            <Card className="border border-border bg-card p-5 shadow-sm space-y-4">
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                 Document Details
               </h3>
@@ -306,7 +372,7 @@ export default function DocumentDetailPage() {
             </Card>
 
             {/* Live Audit Log Card */}
-            <Card className="border border-[#F1F1F3] bg-white p-5 shadow-xs space-y-4 rounded-3xl">
+            <Card className="border border-border bg-card p-5 shadow-xs space-y-4 rounded-3xl">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                   Document Audit Trail

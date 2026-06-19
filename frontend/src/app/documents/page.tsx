@@ -178,7 +178,7 @@ export default function DocumentsPage() {
             className="fixed inset-0"
             onClick={() => setIsUploadOpen(false)}
           />
-          <Card className="relative z-10 w-full max-w-md border border-border bg-white p-6 shadow-xl rounded-[2rem] animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
+          <Card className="relative z-10 w-full max-w-md border border-border bg-card p-6 shadow-xl rounded-[2rem] animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider pl-1">
                 Upload Document

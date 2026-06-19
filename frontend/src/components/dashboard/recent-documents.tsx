@@ -18,14 +18,14 @@ export function RecentDocuments() {
 
   if (recentDocs.length === 0) {
     return (
-      <div className="rounded-[2rem] border border-border/80 bg-white p-8 text-center">
+      <div className="rounded-[2rem] border border-border/80 bg-card p-8 text-center">
         <p className="text-xs text-muted-foreground">No documents uploaded yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-[2rem] border border-border/80 bg-white overflow-hidden shadow-sm">
+    <div className="rounded-[2rem] border border-border/80 bg-card overflow-hidden shadow-sm">
       <div className="divide-y divide-border/60">
         {recentDocs.map((doc) => {
           // Normalize status casing

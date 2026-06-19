@@ -24,7 +24,7 @@ export function ZoomControls() {
   };
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-border bg-white/95 shadow-md p-1 backdrop-blur-xs">
+    <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 shadow-md p-1 backdrop-blur-xs">
       <Button
         variant="ghost"
         size="icon"

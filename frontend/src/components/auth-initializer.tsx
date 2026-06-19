@@ -16,7 +16,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
 
   if (!initialized) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#FFF9FC]">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="text-xs text-muted-foreground">Initializing session...</span>
